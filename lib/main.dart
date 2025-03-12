@@ -6,9 +6,10 @@ import 'package:landmark_finder/widgets/new_landmark_request.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
-  runApp(const MaterialApp(
-    home: MainApp(),
+  runApp(MaterialApp(
+    home: const MainApp(),
     debugShowCheckedModeBanner: false,
+    theme: ThemeData.dark(),
   ));
 }
 
