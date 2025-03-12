@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:landmark_finder/widgets/new_landmark_request.dart';
 
-void main() {
-  runApp(const MaterialApp(
-    home: MainApp(),
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
+  runApp(MaterialApp(
+    home: const MainApp(),
     debugShowCheckedModeBanner: false,
+    theme: ThemeData.dark(),
   ));
 }
 
@@ -63,17 +68,9 @@ class MainAppState extends State<MainApp> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Location Updates'),
+        title: const Text('Landmark Finder'),
       ),
-      body: Center(
-        child: currentPosition != null
-            ? Text(
-                "Latitude: ${currentPosition!.latitude}, Longitude: ${currentPosition!.longitude}",
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 18))
-            : const Text("Waiting for location updates...",
-                textAlign: TextAlign.center, style: TextStyle(fontSize: 18)),
-      ),
+      body: NewLandmarkRequest(currentPosition: currentPosition),
     );
   }
 }
