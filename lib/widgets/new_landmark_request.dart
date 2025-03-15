@@ -15,6 +15,9 @@ class NewLandmarkRequest extends StatefulWidget {
 
   final Position? currentPosition;
 
+/// 
+/// This function is used to create a new state of the NewLandmarkRequest widget.
+/// 
   @override
   State<NewLandmarkRequest> createState() {
     return NewLandmarkRequestState();
@@ -27,13 +30,14 @@ class NewLandmarkRequestState extends State<NewLandmarkRequest> {
   int _selectedRadius = 1;
   bool isRequestingData = false;
 
+///
+/// This function is used to submit a request to the Google Places API to search for historical landmarks within a specified radius of the user's current location.
+///
   void _submitRequest() async {
+    // Check if location permission is granted
+    // If not, show a snackbar message and return
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
-      // permission = await Geolocator.requestPermission();
-      // if (permission == LocationPermission.denied) {
-      //   return;
-      // }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -53,6 +57,8 @@ class NewLandmarkRequestState extends State<NewLandmarkRequest> {
         isRequestingData = true;
       });
 
+      // Making a POST request to the Google Places API
+      // Searching for historical landmarks within a specified radius of the user's current location
       var url =
           Uri.parse('https://places.googleapis.com/v1/places:searchNearby');
 
@@ -80,6 +86,9 @@ class NewLandmarkRequestState extends State<NewLandmarkRequest> {
         },
         body: body,
       );
+
+// If the request is successful, the response is parsed and the data is displayed in the LandmarkList widget
+// If the request fails, an error message is displayed in the console
 
       if (response.statusCode == 200) {
         var responseString = jsonDecode(response.body);
@@ -132,7 +141,6 @@ class NewLandmarkRequestState extends State<NewLandmarkRequest> {
             landmarkDataList.landmarks.add(landmarkData);
           });
 
-          // ✅ Navigate to the LandmarkList widget and pass the list
           if (mounted) {
             setState(() {
               isRequestingData = false;
