@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -10,10 +11,12 @@ import 'package:landmark_finder/widgets/landmark_list.dart';
 class NewLandmarkRequest extends StatefulWidget {
   const NewLandmarkRequest({
     required this.currentPosition,
+    required this.flutterLocalNotificationsPlugin,
     super.key,
   });
 
   final Position? currentPosition;
+  final FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
 
 /// 
 /// This function is used to create a new state of the NewLandmarkRequest widget.
@@ -56,6 +59,8 @@ class NewLandmarkRequestState extends State<NewLandmarkRequest> {
       setState(() {
         isRequestingData = true;
       });
+
+      showNotification();
 
       // Making a POST request to the Google Places API
       // Searching for historical landmarks within a specified radius of the user's current location
@@ -160,6 +165,25 @@ class NewLandmarkRequestState extends State<NewLandmarkRequest> {
         print('Request failed with status: ${response.statusCode}.');
       }
     }
+  }
+
+  void showNotification() async {
+    var androidPlatformChannelSpecifics = const AndroidNotificationDetails(
+      'landmark channel id',
+      'Landmark Notifications',
+      channelDescription: 'Landmark Notification Channel',
+      importance: Importance.max,
+      priority: Priority.high,
+      ticker: 'ticker',
+    );
+
+    var platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+    await widget.flutterLocalNotificationsPlugin!.show(
+      0,
+      'Landmark Finder',
+      'Searching for landmarks...',
+      platformChannelSpecifics,
+    );
   }
 
   @override

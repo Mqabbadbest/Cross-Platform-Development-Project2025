@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:landmark_finder/widgets/new_landmark_request.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // NotificationService().initNotification();
   await dotenv.load();
   runApp(MaterialApp(
     home: const MainApp(),
@@ -25,11 +27,16 @@ class MainApp extends StatefulWidget {
 class MainAppState extends State<MainApp> {
   Position? currentPosition;
   Stream<Position>? positionStream;
+  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
   @override
   void initState() {
     super.initState();
     getLocationAndListen();
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    var initializationSettingsAndroid = const AndroidInitializationSettings('@mipmap/ic_launcher');
+    var initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
+    flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
   void getLocationAndListen() async {
@@ -70,7 +77,7 @@ class MainAppState extends State<MainApp> {
       appBar: AppBar(
         title: const Text('Landmark Finder'),
       ),
-      body: NewLandmarkRequest(currentPosition: currentPosition),
+      body: NewLandmarkRequest(currentPosition: currentPosition, flutterLocalNotificationsPlugin: flutterLocalNotificationsPlugin),
     );
   }
 }
