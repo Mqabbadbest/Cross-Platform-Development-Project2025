@@ -5,12 +5,16 @@ import 'package:url_launcher/url_launcher.dart';
 
 class LandmarkList extends StatelessWidget {
   final LandmarkDataList landmarks;
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
-  const LandmarkList({super.key, required this.landmarks});
+  const LandmarkList(
+      {super.key,
+      required this.landmarks,
+      required this.flutterLocalNotificationsPlugin});
 
-///
-/// Builds the UI for the LandmarkList widget.
-/// 
+  ///
+  /// Builds the UI for the LandmarkList widget.
+  ///
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,13 +117,13 @@ class LandmarkList extends StatelessWidget {
                               textAlign: TextAlign.center,
                               style: const TextStyle(fontSize: 16),
                             ),
-
                             const SizedBox(height: 8),
                             if (landmark.website != null)
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
-                                  onPressed: () => launchURL(landmark.website!, context),
+                                  onPressed: () =>
+                                      launchURL(landmark.website!, context),
                                   icon: const Icon(Icons.language,
                                       color: Colors.black),
                                   label: const Text("Go to Website",
@@ -130,7 +134,6 @@ class LandmarkList extends StatelessWidget {
                                   ),
                                 ),
                               ),
-
                             const SizedBox(height: 8),
                             if (landmark.phone != null)
                               SizedBox(
@@ -147,7 +150,6 @@ class LandmarkList extends StatelessWidget {
                                   ),
                                 ),
                               ),
-
                             const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -156,7 +158,8 @@ class LandmarkList extends StatelessWidget {
                                   child: ElevatedButton.icon(
                                     onPressed: () => openGoogleMaps(
                                         landmark.location.lat,
-                                        landmark.location.lng),
+                                        landmark.location.lng,
+                                        landmark.displayName),
                                     icon: Image.asset(
                                       "assets/Simpleicons-Team-Simple-Google-maps.48.png",
                                       width: 24,
@@ -178,10 +181,11 @@ class LandmarkList extends StatelessWidget {
                                   child: ElevatedButton.icon(
                                     onPressed: () => openWaze(
                                         landmark.location.lat,
-                                        landmark.location.lng),
+                                        landmark.location.lng,
+                                        landmark.displayName),
                                     icon: Image.asset(
                                       "assets/waze_logo.png",
-                                      width: 24, 
+                                      width: 24,
                                       height: 24,
                                     ),
                                     label: const Text("Waze",
@@ -208,72 +212,93 @@ class LandmarkList extends StatelessWidget {
     );
   }
 
-
-///
-/// Launches the given [url] in the appropriate application.
-/// If the URL cannot be opened, a fallback WebView mode is used.
-/// If the URL still cannot be opened, a SnackBar is shown.
-///
+  ///
+  /// Launches the given [url] in the appropriate application.
+  /// If the URL cannot be opened, a fallback WebView mode is used.
+  /// If the URL still cannot be opened, a SnackBar is shown.
+  ///
   void launchURL(String url, BuildContext context) async {
-  final Uri uri = Uri.parse(url);
+    final Uri uri = Uri.parse(url);
 
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri);
-  } else {
-    debugPrint("Could not open URL: $url. Trying WebView mode...");
-    
-    // Try opening inside WebView as a fallback
-    bool webViewSuccess = await launchUrl(uri, mode: LaunchMode.inAppWebView);
-    
-    if (!webViewSuccess) {
-      debugPrint("Still could not open URL: $url");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("No application found to open this link."),
-        ),
-      );
+    if (await canLaunchUrl(uri)) {
+      showNotification("Opening website for ${uri.host}");
+      await launchUrl(uri);
+    } else {
+      debugPrint("Could not open URL: $url. Trying WebView mode...");
+
+      // Try opening inside WebView as a fallback
+      bool webViewSuccess = await launchUrl(uri, mode: LaunchMode.inAppWebView);
+
+      if (!webViewSuccess) {
+        debugPrint("Still could not open URL: $url");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("No application found to open this link."),
+          ),
+        );
+      }
     }
   }
-}
 
-///
-/// Launches the phone dial pad with the given [phoneNumber].
-///
+  ///
+  /// Launches the phone dial pad with the given [phoneNumber].
+  ///
   void launchPhone(String phoneNumber) async {
     String formattedPhoneNumber = phoneNumber.replaceAll(" ", "");
     Uri url = Uri(scheme: "tel", path: formattedPhoneNumber);
     if (await canLaunchUrl(url)) {
+      showNotification("Dialling $formattedPhoneNumber");
       await launchUrl(url);
     } else {
       print("Can't open dial pad.");
     }
   }
 
-///
-/// Opens Google Maps with the given latitude [lat] and longitude [lng].
-///
-  void openGoogleMaps(double lat, double lng) async {
+  ///
+  /// Opens Google Maps with the given latitude [lat] and longitude [lng].
+  ///
+  void openGoogleMaps(double lat, double lng, String landmark) async {
     final Uri googleMapsUri =
-        Uri(scheme: "google.navigation", queryParameters: {
-          'q': '$lat,$lng'
-        });
+        Uri(scheme: "google.navigation", queryParameters: {'q': '$lat,$lng'});
     if (await canLaunchUrl(googleMapsUri)) {
+      showNotification("Opening Google Maps for directions to $landmark");
       await launchUrl(googleMapsUri);
     } else {
       print("Could not open Google Maps.");
     }
   }
 
-///
-/// Opens Waze with the given latitude [lat] and longitude [lng].
-///   
-  void openWaze(double lat, double lng) async {
+  ///
+  /// Opens Waze with the given latitude [lat] and longitude [lng].
+  ///
+  void openWaze(double lat, double lng, String landmark) async {
     final Uri wazeUri =
         Uri.parse("https://waze.com/ul?ll=$lat,$lng&navigate=yes");
     if (await canLaunchUrl(wazeUri)) {
+      showNotification("Opening Waze for directions to $landmark");
       await launchUrl(wazeUri, mode: LaunchMode.externalApplication);
     } else {
-      debugPrint("Could not open Waze.");
+      print("Could not open Waze.");
     }
+  }
+
+  void showNotification(String message) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'landmark channel id',
+      'Landmark Notifications',
+      channelDescription: 'Landmark Notification Channel',
+      importance: Importance.max,
+      priority: Priority.high,
+      ticker: 'ticker',
+    );
+    var platformChannelSpecifics =
+        const NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Landmark Finder',
+      message,
+      platformChannelSpecifics,
+    );
   }
 }

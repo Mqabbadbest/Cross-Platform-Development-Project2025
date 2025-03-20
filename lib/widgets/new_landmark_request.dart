@@ -18,9 +18,9 @@ class NewLandmarkRequest extends StatefulWidget {
   final Position? currentPosition;
   final FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
 
-/// 
-/// This function is used to create a new state of the NewLandmarkRequest widget.
-/// 
+  ///
+  /// This function is used to create a new state of the NewLandmarkRequest widget.
+  ///
   @override
   State<NewLandmarkRequest> createState() {
     return NewLandmarkRequestState();
@@ -33,9 +33,9 @@ class NewLandmarkRequestState extends State<NewLandmarkRequest> {
   int _selectedRadius = 1;
   bool isRequestingData = false;
 
-///
-/// This function is used to submit a request to the Google Places API to search for historical landmarks within a specified radius of the user's current location.
-///
+  ///
+  /// This function is used to submit a request to the Google Places API to search for historical landmarks within a specified radius of the user's current location.
+  ///
   void _submitRequest() async {
     // Check if location permission is granted
     // If not, show a snackbar message and return
@@ -154,7 +154,11 @@ class NewLandmarkRequestState extends State<NewLandmarkRequest> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => LandmarkList(landmarks: landmarkDataList),
+                builder: (context) => LandmarkList(
+                  landmarks: landmarkDataList,
+                  flutterLocalNotificationsPlugin:
+                      widget.flutterLocalNotificationsPlugin!,
+                ),
               ),
             );
           }
@@ -177,7 +181,8 @@ class NewLandmarkRequestState extends State<NewLandmarkRequest> {
       ticker: 'ticker',
     );
 
-    var platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+    var platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
     await widget.flutterLocalNotificationsPlugin!.show(
       0,
       'Landmark Finder',
