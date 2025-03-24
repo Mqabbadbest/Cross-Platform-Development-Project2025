@@ -163,7 +163,16 @@ class NewLandmarkRequestState extends State<NewLandmarkRequest> {
             );
           }
         } else {
-          print("No places found.");
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'No landmarks found within the specified radius.',
+              ),
+            ),
+          );
+          setState(() {
+            isRequestingData = false;
+          });
         }
       } else {
         print('Request failed with status: ${response.statusCode}.');
@@ -185,8 +194,8 @@ class NewLandmarkRequestState extends State<NewLandmarkRequest> {
         NotificationDetails(android: androidPlatformChannelSpecifics);
     await widget.flutterLocalNotificationsPlugin!.show(
       0,
-      'Landmark Finder',
-      'Searching for landmarks...',
+      'Searching...',
+      'Landmarks within $_selectedRadius km of your location',
       platformChannelSpecifics,
     );
   }
@@ -204,10 +213,11 @@ class NewLandmarkRequestState extends State<NewLandmarkRequest> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Radius (km):', style: TextStyle(fontSize: 16)),
+                  const Text('Search Radius (km):', style: TextStyle(fontSize: 16)),
                   const SizedBox(width: 25),
                   DropdownButton<int>(
                     value: _selectedRadius,
+                    menuMaxHeight: 250,
                     items: radiusOptions
                         .map((option) => DropdownMenuItem(
                             value: option, child: Text(option.toString())))
@@ -224,7 +234,7 @@ class NewLandmarkRequestState extends State<NewLandmarkRequest> {
               SizedBox(
                 width: 200,
                 child: ElevatedButton(
-                  onPressed: _submitRequest,
+                  onPressed: (widget.currentPosition == null || isRequestingData)? null : _submitRequest,
                   child: isRequestingData
                       ? const SizedBox(
                           width: 16,
